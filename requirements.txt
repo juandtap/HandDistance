@@ -1,0 +1,2 @@
+cvzone==1.5.3
+mediapipe
