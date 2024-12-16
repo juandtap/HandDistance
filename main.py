@@ -59,7 +59,7 @@ while True:
 
         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-        cvzone.putTextRect(img, f'{int(distanceCM)} cm', (x+5, y-10), 1,1)
+        cvzone.putTextRect(img, f'Z: {int(distanceCM)} cm', (x+5, y-10), 1,1)
         cvzone.putTextRect(img, f"X: {int(dist_x_cm)} cm", (x+5, y-40), 1, 1)
         cvzone.putTextRect(img, f"Y: {int(dist_y_cm)} cm", (x + 5, y-70),1, 1)
 
