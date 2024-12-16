@@ -7,20 +7,28 @@ import cvzone
 
 #Webcam
 cap = cv2.VideoCapture(0)
-# cambiar la resolucion a preferencia
-cap.set(3, 800)
-cap.set(4, 600)
+
+# dimensiones de la ventana en pixeles se calcula en base a la webcam usada
+
+ancho = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+alto = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+cap.set(3, ancho)
+cap.set(4, alto)
 # detector de manos
 detector = HandDetector(detectionCon=0.8, maxHands=1)
-
-# funcion
-# y es la distancia en cm
-#x = [300, 245, 200, 170, 145, 130, 112, 103, 93, 87, 80, 75, 70, 67, 62, 59, 57]
-#y = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
 
 x = [185, 134, 99, 94, 87, 79, 63]
 y = [20, 25, 30, 35, 40 , 45, 50]
 coff = np.polyfit(x, y, 2) # y = Ax^2 + Bx + C
+
+# Coordenadas del centro de la pantalla
+frame_center_x = ancho // 2
+frame_center_y = alto // 2
+
+
+# ajustar este valor si los valores de X y Y no son coherentes
+FOCAL_LENGTH_PIXELS = 500
 
 while True:
     success, img = cap.read()
@@ -38,11 +46,26 @@ while True:
 
         distanceCM = A * distance**2  + B*distance + C
 
-        print(distanceCM, distance)
+        hand_x, hand_y = lmList[9]
 
-        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
-        cvzone.putTextRect(img, f'{int(distanceCM)} cm', (x+5, y-10))
+        dist_x_pixels = hand_x - frame_center_x
+        dist_y_pixels = hand_y - frame_center_y
+
+        dist_x_cm = dist_x_pixels * (distanceCM / FOCAL_LENGTH_PIXELS)
+        dist_y_cm = dist_y_pixels * (distanceCM / FOCAL_LENGTH_PIXELS)
+
+        print(distanceCM, distance, dist_x_cm, dist_y_cm)
+
+        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        cvzone.putTextRect(img, f'{int(distanceCM)} cm', (x+5, y-10), 1,1)
+        cvzone.putTextRect(img, f"X: {int(dist_x_cm)} cm", (x+5, y-40), 1, 1)
+        cvzone.putTextRect(img, f"Y: {int(dist_y_cm)} cm", (x + 5, y-70),1, 1)
+
+        # También puedes visualizar una línea del centro a la mano
+        cv2.line(img, (frame_center_x, frame_center_y), (hand_x, hand_y), (0, 255, 0), 1)
+        cv2.circle(img, (frame_center_x, frame_center_y), 5, (0, 0, 255), cv2.FILLED)  # Marca el centro
 
 
     cv2.imshow("Image", img)
@@ -50,28 +73,3 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-
-# while True :
-#     success, img = cap.read()
-#     img, hands = detector.findHands(img, draw=False)
-#
-#     print(type(hands))
-#
-#     if hands is not None and hands.size > 0:
-#         hand = hands[0]
-#         lmList = hand['lmList']
-#         x, y, w , h = hand['bbox']
-#         x1, y1 = lmList[5]
-#         x2, y2 = lmList[17]
-#
-#         distance = int(math.sqrt((x1 - x1) ** 2 + (y1 - y1) ** 2))
-#         A, B, C = coff
-#         distanceCM = A * distance**2 + B * distance + C
-#
-#         print(distanceCM, distance)
-#
-#         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 255), 3)
-#         cvzone.putTextRect(img, f"{int(distanceCM)} cm", (x+5, y-10))
-#
-#     cv2.imshow("Image", img)
-#     cv2.waitKey(1)
